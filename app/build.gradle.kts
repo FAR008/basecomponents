@@ -70,6 +70,7 @@ dependencies {
 // Lifecycle components (required for repeatOnLifecycle)
     api("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
     api("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
+    implementation("com.google.android.material:material:1.12.0")
 
     // Coroutines (compileOnly - optional for consumers)
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
