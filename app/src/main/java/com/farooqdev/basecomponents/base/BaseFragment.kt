@@ -10,6 +10,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.addCallback
 import androidx.core.graphics.Insets
 import androidx.transition.TransitionInflater
+import androidx.viewbinding.ViewBinding
 import com.farooqdev.basecomponents.ExtensionUtils.safeReturn
 
 abstract class BaseFragment<T : ViewBinding>(private val backPressEnabled: Boolean) :
@@ -26,7 +27,7 @@ abstract class BaseFragment<T : ViewBinding>(private val backPressEnabled: Boole
      * */
     val globalContext: Context by lazy { safeReturn(requireContext()) { binding.root.context } }
     private val globalActivity by lazy { globalContext as Activity }
-    val mainActivity by lazy { globalActivity as MainActivity }
+    //val mainActivity by lazy { globalActivity as MainActivity }
 
     /** - Obtains the layout binding for the fragment.
      *  - it is called within the on create view function, so the binding can be set up.
@@ -94,9 +95,7 @@ abstract class BaseFragment<T : ViewBinding>(private val backPressEnabled: Boole
     ): View {
         _binding = layoutResource(inflater, container)
         safeReturn { onCreateView() }
-        windowInsets?.let {
-            handleInsets(it)
-        }
+
         return binding.root
     }
 
@@ -113,16 +112,6 @@ abstract class BaseFragment<T : ViewBinding>(private val backPressEnabled: Boole
      * @param view The view returned by onCreateView(LayoutInflater, ViewGroup, Bundle).
      * @param savedInstanceState A Bundle containing the activity's previously saved state.
      */
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        if (backPressEnabled) {
-            mainActivity.onBackPressedDispatcher.addCallback(viewLifecycleOwner, true) {
-                if (!mainActivity.stopCallback) {
-                    onBackPressedCallback()
-                }
-            }
-        }
-    }
 
     /**
      * Called when the view hierarchy associated with the fragment is being destroyed.
