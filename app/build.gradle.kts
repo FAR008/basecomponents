@@ -58,28 +58,24 @@ android {
 }
 
 dependencies {
-    // AndroidX Core
-    implementation("androidx.core:core-ktx:1.16.0")
+    // Essential dependencies (marked as api to expose to consumers)
+    api("androidx.core:core-ktx:1.16.0")
 
-    // AppCompat
-    implementation("androidx.appcompat:appcompat:1.7.1")
+    // Fragment components (api since they're fundamental)
+    api("androidx.fragment:fragment-ktx:1.8.8")
 
-    // Material Design
-    implementation("com.google.android.material:material:1.12.0")
+    // Navigation (compileOnly - let apps decide their navigation version)
+    compileOnly("androidx.navigation:navigation-fragment-ktx:2.9.2")
 
-    // Jetpack Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.2")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.2")
+// Lifecycle components (required for repeatOnLifecycle)
+    api("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
+    api("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
 
-    // Lifecycle ViewModel & Runtime
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
+    // Coroutines (compileOnly - optional for consumers)
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
-
-    // Unit Testing
+    // Test dependencies (not exposed to consumers)
     testImplementation("junit:junit:4.13.2")
-
-    // Android Instrumentation Tests
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 }
@@ -90,7 +86,7 @@ afterEvaluate {
             register<MavenPublication>("release") {
                 groupId = "com.github.FAR008"
                 artifactId = "basecomponents"
-                version = "1.0.0"
+                version = "1.0.3"
 
                 from(components["release"])
 

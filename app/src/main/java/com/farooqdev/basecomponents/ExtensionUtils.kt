@@ -21,7 +21,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.Insets
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
@@ -29,9 +28,12 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.DecimalFormat
@@ -66,6 +68,7 @@ object ExtensionUtils {
     fun Context.getSdpValue(sdpRes: Int): Int {
         return resources.getDimensionPixelSize(sdpRes)
     }
+
 
     fun Context.isPackageInstalled(packageName: String?): Boolean {
         return safeReturn(false) {
@@ -376,7 +379,14 @@ object ExtensionUtils {
         return duration.formatDurationSeconds()
     }
 
-
+    /**Perform an action*/
+    inline fun Fragment.collectOnCreated(crossinline collect: suspend (CoroutineScope) -> Unit) {
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                collect.invoke(this)
+            }
+        }
+    }
 
     //HideKeyBoard Extensions
     fun Activity.hideKeyboard() {
@@ -415,6 +425,23 @@ object ExtensionUtils {
         return formatter.format(instant)
     }
 
+    fun ImageView.load(value: String?) {
+        // Glide.with(context).load(value).error(R.drawable.app_icon)
+        //     .into(this)
+    }
+
+    fun String.toHumanTime(): String {
+        val instant = Instant.parse(this)
+        val now = Instant.now()
+
+        val duration = Duration.between(instant, now)
+        return when {
+            duration.toDays() > 0 -> "${duration.toDays()} days ago"
+            duration.toHours() > 0 -> "${duration.toHours()} hours ago"
+            duration.toMinutes() > 0 -> "${duration.toMinutes()} minutes ago"
+            else -> "Just now"
+        }
+    }
 
 
     fun String.toDateSimpleTime(): String {
@@ -428,6 +455,15 @@ object ExtensionUtils {
         return formatter.format(instant)
     }
 
+    fun String.toDate(): String {
+        // Parse the date-time string into an Instant
+        val instant = Instant.parse(this)
+
+        // Format the Instant to a date string (yyyy-MM-dd)
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("UTC"))
+
+        return formatter.format(instant)
+    }
 
     /**
      * Handles the window insets for a given view in the Activity.
@@ -463,6 +499,13 @@ object ExtensionUtils {
         visibility = INVISIBLE
     }
 
+    fun <T> Fragment.collectLatestLifecycleFlow(flow: Flow<T>, collect: suspend (T) -> Unit) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                flow.collectLatest(collect)
+            }
+        }
+    }
 
     suspend fun delay(millis: Long) {
         withContext(Dispatchers.IO) {
@@ -487,3 +530,4 @@ object ExtensionUtils {
     }
 
 }
+
