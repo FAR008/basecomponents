@@ -1,110 +1,87 @@
 package com.farooqdev.basecomponents.base
-
 import android.os.Bundle
-import androidx.annotation.MainThread
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavController
+import androidx.lifecycle.withCreated
+import androidx.lifecycle.withResumed
+import androidx.lifecycle.withStarted
 import androidx.navigation.NavDirections
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.FragmentNavigator
 import androidx.navigation.fragment.findNavController
+import com.farooqdev.basecomponents.base.FragmentGeneral
 import kotlinx.coroutines.launch
 
-abstract class BaseNavFragment : androidx.fragment.app.Fragment() {
+abstract class BaseNavFragment : FragmentGeneral() {
 
-    // Navigation options
-    protected val singleTop: NavOptions by lazy {
-        NavOptions.Builder()
-            .setLaunchSingleTop(true)
-            .build()
+    open fun navIconBackPressed() {
+        onBackPressed()
     }
 
-    protected val popUpToRoot: NavOptions by lazy {
+    open fun onBackPressed() {
+        // Override in child if needed
+    }
+
+    val singleTop by lazy {
+        NavOptions.Builder().setLaunchSingleTop(true).build()
+    }
+
+    val popUpTo by lazy {
         NavOptions.Builder()
             .setPopUpTo(findNavController().graph.startDestinationId, true)
             .build()
     }
 
-    // Navigation methods
-    @MainThread
-    protected fun navigateTo(action: NavDirections) = safeNavigation {
-        findNavController().navigate(action)
-    }
-
-    @MainThread
-    protected fun navigateTo(
-        actionId: Int,
-        args: Bundle? = null,
-        navOptions: NavOptions? = null,
-        extras: FragmentNavigator.Extras? = null
-    ) = safeNavigation {
-        findNavController().navigate(actionId, args, navOptions, extras)
-    }
-
-    @MainThread
-    protected fun navigateUp() = safeNavigation {
-        findNavController().navigateUp()
-    }
-
-    @MainThread
-    protected fun popBackStack() = safeNavigation {
-        findNavController().popBackStack()
-    }
-
-    @MainThread
-    protected fun popBackStack(destinationId: Int, inclusive: Boolean) = safeNavigation {
-        findNavController().popBackStack(destinationId, inclusive)
-    }
-
-    // Back press handling
-    open fun onBackPressed() {
-        popBackStack()
-    }
-
-    // Safe navigation wrapper
-    private fun safeNavigation(block: () -> Unit) {
-        if (!isAdded || isDetached) return
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                if (isResumed) {
-                    block()
-                } else {
-                    // Wait for fragment to be resumed if not already
-                    repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                        block()
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle navigation errors
+    protected fun navigateTo(fragmentId: Int, action: Int, args: Bundle? = null, navOptions: NavOptions? = null, extras: FragmentNavigator.Extras? = null) {
+        launchWhenCreated {
+            if (isAdded && isCurrentDestination(fragmentId)) {
+                findNavController().navigate(action, args, navOptions, extras)
             }
         }
     }
 
-    // Modern lifecycle-aware coroutine launchers
-    protected fun launchWhenCreated(block: suspend () -> Unit) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                block()
+    protected fun navigateTo(fragmentId: Int, action: NavDirections) {
+        launchWhenCreated {
+            if (isAdded && isCurrentDestination(fragmentId)) {
+                findNavController().navigate(action)
             }
         }
     }
 
-    protected fun launchWhenStarted(block: suspend () -> Unit) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                block()
+    protected fun navigateUp() {
+        launchWhenCreated {
+            findNavController().navigateUp()
+        }
+    }
+
+    protected fun popFrom(fragmentId: Int) {
+        launchWhenCreated {
+            if (isAdded && isCurrentDestination(fragmentId)) {
+                findNavController().popBackStack()
             }
         }
     }
 
-    protected fun launchWhenResumed(block: suspend () -> Unit) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                block()
+    protected fun popFrom(fragmentId: Int, destinationFragmentId: Int, inclusive: Boolean = false) {
+        launchWhenCreated {
+            if (isAdded && isCurrentDestination(fragmentId)) {
+                findNavController().popBackStack(destinationFragmentId, inclusive)
             }
         }
+    }
+
+    private fun isCurrentDestination(fragmentId: Int): Boolean {
+        return findNavController().currentDestination?.id == fragmentId
+    }
+
+    protected fun launchWhenCreated(callback: () -> Unit) {
+        lifecycleScope.launch { lifecycle.withCreated(callback) }
+    }
+
+    protected fun launchWhenStarted(callback: () -> Unit) {
+        lifecycleScope.launch { lifecycle.withStarted(callback) }
+    }
+
+    protected fun launchWhenResumed(callback: () -> Unit) {
+        lifecycleScope.launch { lifecycle.withResumed(callback) }
     }
 }
