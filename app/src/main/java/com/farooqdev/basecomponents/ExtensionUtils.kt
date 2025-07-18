@@ -376,14 +376,7 @@ object ExtensionUtils {
         return duration.formatDurationSeconds()
     }
 
-    /**Perform an action*/
-    inline fun Fragment.collectOnCreated(crossinline collect: suspend (CoroutineScope) -> Unit) {
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                collect.invoke(this)
-            }
-        }
-    }
+
 
     //HideKeyBoard Extensions
     fun Activity.hideKeyboard() {
