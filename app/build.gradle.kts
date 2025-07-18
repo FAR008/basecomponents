@@ -72,7 +72,7 @@ dependencies {
     api("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
 
     // Coroutines (compileOnly - optional for consumers)
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     // Test dependencies (not exposed to consumers)
     testImplementation("junit:junit:4.13.2")
