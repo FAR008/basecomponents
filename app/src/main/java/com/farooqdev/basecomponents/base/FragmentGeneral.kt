@@ -23,15 +23,14 @@ open class FragmentGeneral : Fragment() {
     }
 
     protected fun showToast(message: String) {
-        activity?.runOnUiThread {
-            try {
-                Toast.makeText(it, message, Toast.LENGTH_SHORT).show()
-                Log.e("TOAST", message)
-            } catch (ex: Exception) {
-                ex.recordException()
-            }
+        val context = activity ?: return
+        try {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        } catch (ex: Exception) {
+            ex.recordException()
         }
     }
+
 
 
     protected fun showToast(stringId: Int) {
